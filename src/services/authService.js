@@ -1,13 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const path = require('path');
-const { PrismaClient } = require('@prisma/client');
-const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
-const Database = require('better-sqlite3');
-
-const sqlite = new Database(path.join(__dirname, '../../prisma/dev.db'));
-const adapter = new PrismaBetterSqlite3(sqlite);
-const prisma = new PrismaClient({ adapter });
+const prisma = require('../config/db'); // Using our clean connection
 
 const register = async (name, email, password, role) => {
   try {
@@ -30,7 +23,7 @@ const register = async (name, email, password, role) => {
         name,
         email,
         password: hashedPassword,
-        role,
+        role: role || 'ATTENDEE', // Provide a default role
       },
     });
     console.log('4. User created');
@@ -59,7 +52,7 @@ const login = async (email, password) => {
 
   const token = jwt.sign(
     { id: user.id, role: user.role },
-    process.env.JWT_SECRET,
+    process.env.JWT_SECRET || 'fallback_secret',
     { expiresIn: '7d' }
   );
 
