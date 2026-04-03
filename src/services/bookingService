@@ -1,0 +1,49 @@
+const prisma = require('../config/db');
+
+const bookEvent = async (userId, eventId) => {
+  // Convert eventId from string to integer (since it comes from the URL)
+  const eventIdInt = parseInt(eventId);
+
+  // A Prisma Transaction ensures both operations succeed, or neither do
+  return await prisma.$transaction(async (tx) => {
+    // 1. Fetch the event to see its capacity
+    const event = await tx.event.findUnique({
+      where: { id: eventIdInt },
+    });
+
+    if (!event) {
+      throw new Error('Event not found');
+    }
+
+    // 2. Count how many tickets are already sold
+    const currentBookingsCount = await tx.booking.count({
+      where: { eventId: eventIdInt },
+    });
+
+    // 3. Validate capacity!
+    if (currentBookingsCount >= event.capacity) {
+      throw new Error('Sorry, this event is completely sold out!');
+    }
+
+    // 4. Check if the user already booked a ticket (prevent double-booking)
+    const existingBooking = await tx.booking.findFirst({
+      where: { userId: userId, eventId: eventIdInt },
+    });
+
+    if (existingBooking) {
+      throw new Error('You have already booked a ticket for this event.');
+    }
+
+    // 5. If we passed all checks, create the booking
+    const booking = await tx.booking.create({
+      data: {
+        userId: userId,
+        eventId: eventIdInt,
+      },
+    });
+
+    return booking;
+  });
+};
+
+module.exports = { bookEvent };
