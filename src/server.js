@@ -13,11 +13,22 @@ app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/events', eventRoutes);
 app.use('/bookings', bookingRoutes);
+const errorHandler = require('./middlewares/errorHandler');
+
 
 
 app.get('/', (req, res) => {
   res.json({ message: 'Server is running!' });
 });
+
+app.get('/test-error', (req, res, next) => {
+  // We simulate a database crash or unexpected bug
+  const fakeError = new Error('The database connection was mysteriously lost!');
+  fakeError.statusCode = 503; // Service Unavailable
+  next(fakeError); // Passing it to 'next' throws it into our global net
+});
+
+app.use(errorHandler);
 
 const PORT = 3000;
 app.listen(PORT, () => {
