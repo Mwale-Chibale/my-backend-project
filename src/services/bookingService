@@ -1,3 +1,6 @@
+// Adapted from: AI Assistant (Gemini) response explaining Prisma $transaction concurrency.
+// Source: Pair-programming session resolving race conditions in ticket booking.
+
 const prisma = require('../config/db');
 
 const bookEvent = async (userId, eventId) => {
