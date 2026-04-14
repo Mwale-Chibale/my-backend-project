@@ -5,8 +5,7 @@ const { authenticateUser, authorizeRole } = require('../middlewares/authMiddlewa
 const { validateEvent } = require('../middlewares/validationMiddleware'); // Import it
 
 router.get('/', eventController.getAllEvents);
-
-// Add the validation right after checking their role, but before creating the event
+router.get('/:id/attendees', authenticateUser, authorizeRole('ORGANISER'), eventController.getEventAttendees);
 router.post('/', authenticateUser, authorizeRole('ORGANISER'), validateEvent, eventController.createEvent);
 
 module.exports = router;

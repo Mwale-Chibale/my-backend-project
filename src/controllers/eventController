@@ -24,4 +24,22 @@ const getAllEvents = async (req, res) => {
   }
 };
 
-module.exports = { createEvent, getAllEvents };
+
+const getEventAttendees = async (req, res) => {
+  try {
+    const { id } = req.params; // The event ID from the URL
+    const organiserId = req.user.id; // The logged-in Organiser's ID from the JWT token
+
+    const data = await eventService.getEventAttendees(id, organiserId);
+    
+    res.status(200).json(data);
+  } catch (err) {
+    // If they aren't the owner, return a 403 Forbidden
+    if (err.message.includes('Unauthorized')) {
+      return res.status(403).json({ error: err.message });
+    }
+    res.status(404).json({ error: err.message });
+  }
+};
+
+module.exports = { createEvent, getAllEvents, getEventAttendees };
